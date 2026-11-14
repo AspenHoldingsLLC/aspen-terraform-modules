@@ -4,9 +4,6 @@ Generic Terraform modules for the client tenants Aspen Holdings runs. Each clien
 organization and landing zone repo, and that repo calls these modules at a tag. A client keeps the exact versions it
 uses after it leaves Aspen.
 
-> **Private for now.** The maintainer reviews the repo and picks a licence before it's made public. Until then, a landing zone
-> in another GitHub organization can't fetch these modules without a read token (see "Calling a module").
-
 ## Modules
 
 | Module | What it does | Signs in as |
@@ -37,13 +34,11 @@ module "deployer" {
 Pin a tag, never a branch. A new tag is a new release: read its changes, then bump the `ref` in one landing zone at a
 time.
 
-While the repo is private, `terraform init` needs read access to it. On a machine signed in with `gh`, git's
-credential helper does it. In another organization's GitHub Actions it needs a read-only token for this repo, set
-up before the first `init`. Once the repo is public, neither is needed.
+The repo is public, so `terraform init` fetches modules with no token, from any machine or GitHub organization.
 
 ## Releases
 
-Tags follow semantic versioning. `v0.1.0` is cut by the maintainer after this repo's first pull request merges. Nothing tags
+Tags follow semantic versioning, starting at `v0.1.0`. The maintainer cuts each tag by hand after a merge. Nothing tags
 itself.
 
 ## CI
@@ -51,3 +46,7 @@ itself.
 `.github/workflows/ci.yml` runs on every pull request: gitleaks, a check for real IDs, `terraform fmt`, `validate` on
 each example, tflint with the azurerm ruleset, and Trivy (HIGH and CRITICAL fail). It holds no cloud credentials and
 never reaches a tenant. Run the same tools locally before pushing.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
