@@ -4,7 +4,7 @@ Generic Terraform modules for the client tenants Aspen Holdings runs. Each clien
 organization and landing zone repo, and that repo calls these modules at a tag. A client keeps the exact versions it
 uses after it leaves Aspen.
 
-> **Private for now.** Brian reviews the repo and picks a licence before it's made public. Until then, a landing zone
+> **Private for now.** The maintainer reviews the repo and picks a licence before it's made public. Until then, a landing zone
 > in another GitHub organization can't fetch these modules without a read token (see "Calling a module").
 
 ## Modules
@@ -43,7 +43,7 @@ up before the first `init`. Once the repo is public, neither is needed.
 
 ## Releases
 
-Tags follow semantic versioning. `v0.1.0` is cut by Brian after this repo's first pull request merges. Nothing tags
+Tags follow semantic versioning. `v0.1.0` is cut by the maintainer after this repo's first pull request merges. Nothing tags
 itself.
 
 ## CI
