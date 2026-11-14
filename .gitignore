@@ -1,0 +1,25 @@
+# Terraform
+.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.tfrc
+terraform.rc
+
+# Modules don't pin providers; the landing zone that calls them does. The examples are validated, never applied.
+.terraform.lock.hcl
+
+# Variable files hold per-machine values.
+*.tfvars
+*.tfvars.json
+
+.env
+.DS_Store

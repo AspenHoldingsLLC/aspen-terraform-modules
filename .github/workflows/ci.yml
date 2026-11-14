@@ -1,0 +1,88 @@
+# CI for every module and its example. No cloud credentials: validation runs with -backend=false against
+# placeholder IDs, so CI never reaches a tenant. Scanners are pinned binaries checked against their release SHA-256.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Working tree only, not history. Runs first so a leak fails fast.
+      - name: Secret scan (gitleaks)
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          asset="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tarball="${RUNNER_TEMP}/${asset}"
+          curl -sSfL -o "$tarball" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${asset}"
+          echo "${GITLEAKS_SHA256}  ${tarball}" | sha256sum -c -
+          tar -xzf "$tarball" -C "${RUNNER_TEMP}" gitleaks
+          "${RUNNER_TEMP}/gitleaks" dir . --no-banner --redact --exit-code 1
+
+      # Generic content only: no tenant or subscription IDs except the all-zero placeholder and the repeated-digit
+      # placeholders the examples use.
+      - name: No real IDs
+        run: |
+          if grep -rnoE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' --include='*.tf' --include='*.md' . \
+            | grep -vE ':(0{8}|1{8}|2{8}|3{8}|4{8}|5{8}|6{8})-'; then
+            echo "::error::A GUID that isn't a placeholder. Modules stay generic; real IDs belong in a landing zone repo."
+            exit 1
+          fi
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.15.2"
+          terraform_wrapper: false
+
+      - name: Format
+        run: terraform fmt -check -recursive -diff
+
+      # Each example calls its module from ../.., so validating the examples validates the modules too.
+      - name: Validate each example
+        run: |
+          for dir in modules/*/examples/*/; do
+            echo "::group::$dir"
+            terraform -chdir="$dir" init -backend=false -input=false -no-color
+            terraform -chdir="$dir" validate -no-color
+            echo "::endgroup::"
+          done
+
+      - name: Lint (tflint, azurerm ruleset)
+        env:
+          TFLINT_VERSION: "0.65.0"
+          TFLINT_SHA256: "d4c545ed2e29d6338604b586f34f544f380f70f243aa72f7b484713835eaec61"
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          zip="${RUNNER_TEMP}/tflint.zip"
+          curl -sSfL -o "$zip" \
+            "https://github.com/terraform-linters/tflint/releases/download/v${TFLINT_VERSION}/tflint_linux_amd64.zip"
+          echo "${TFLINT_SHA256}  ${zip}" | sha256sum -c -
+          unzip -q "$zip" -d "${RUNNER_TEMP}"
+          "${RUNNER_TEMP}/tflint" --init --config "$PWD/.tflint.hcl"
+          "${RUNNER_TEMP}/tflint" --recursive --config "$PWD/.tflint.hcl" --format compact
+
+      # HIGH and CRITICAL fail the build. An accepted finding gets an inline #trivy:ignore with the reason beside it.
+      - name: Misconfiguration scan (Trivy)
+        env:
+          TRIVY_VERSION: "0.76.1"
+          TRIVY_SHA256: "c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0"
+        run: |
+          asset="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          tarball="${RUNNER_TEMP}/${asset}"
+          curl -sSfL -o "$tarball" \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${asset}"
+          echo "${TRIVY_SHA256}  ${tarball}" | sha256sum -c -
+          tar -xzf "$tarball" -C "${RUNNER_TEMP}" trivy
+          "${RUNNER_TEMP}/trivy" config --quiet --severity HIGH,CRITICAL --exit-code 1 .
