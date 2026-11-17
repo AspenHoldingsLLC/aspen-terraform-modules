@@ -117,9 +117,23 @@ variable "production_max_replicas" {
 }
 
 variable "custom_domains" {
-  description = "Hostnames to bind to production later. Not bound yet: listed here so the plan for them is in code."
-  type        = list(string)
-  default     = []
+  description = <<-EOT
+    Hostnames bound to the production app, each with an Azure-managed certificate in the environment (domains.tf). The
+    key is the hostname. certificate_name is the certificate's name in the environment: keep the name it was created
+    with when importing. validation is how Azure proves control of the domain: TXT (a _dnsauth record, which works
+    before DNS points at the app), HTTP (an apex A record already pointing here) or CNAME (a subdomain already
+    pointing here).
+  EOT
+  type = map(object({
+    certificate_name = string
+    validation       = string
+  }))
+  default = {}
+
+  validation {
+    condition     = alltrue([for d in values(var.custom_domains) : contains(["TXT", "HTTP", "CNAME"], d.validation)])
+    error_message = "validation must be TXT, HTTP or CNAME."
+  }
 }
 
 variable "portal_sign_in" {

@@ -112,6 +112,35 @@ Both apps start on `mcr.microsoft.com/k8se/quickstart:latest` (port 80), so they
 Deploys replace the image and Terraform ignores it. Set `target_port = 3000` in the module block before the first
 Next.js deploy. The port applies to every revision, so the placeholder stops answering once it changes.
 
+## Custom domains
+
+The provider can create a managed certificate and a hostname, but can't attach one to the other. Bind each domain
+with `az`, then import both resources. With TXT validation this works before DNS points at the app, so the switch has
+no certificate errors, even with the domain still bound to an old app elsewhere (tested 2026-11-17):
+
+1. At the registrar: `asuid.<host>` TXT with output `custom_domain_verification_id` (alongside any old value).
+2. `az containerapp hostname add --hostname <host> -n <production app> -g <rg>`
+3. `az containerapp env certificate create -g <rg> -n <environment> --hostname <host> --validation-method TXT
+   --certificate-name mc-<host with dots as dashes>`, then a `_dnsauth.<host>` TXT record with the certificate's
+   `validationToken`. It's issued in a few minutes.
+4. `az containerapp hostname bind --hostname <host> -n <production app> -g <rg> --environment <environment>
+   --certificate <name> --validation-method TXT`
+5. Switch the A record (apex, to `environment_static_ip`) or CNAME (subdomain, to the app's hostname).
+6. Add the host to `custom_domains` and import both resources:
+
+```hcl
+import {
+  to = module.site.azurerm_container_app_environment_managed_certificate.production["www.example.com"]
+  id = "<environment id>/managedCertificates/mc-www-example-com"
+}
+import {
+  to = module.site.azurerm_container_app_custom_domain.production["www.example.com"]
+  id = "<production app id>/customDomainName/www.example.com"
+}
+```
+
+The certificates have `prevent_destroy`: removing a domain is a deliberate `state rm` and an `az` unbind.
+
 ## Removing a customer
 
 The storage account, both containers and the portal tables have `lifecycle { prevent_destroy = true }`, so deleting
