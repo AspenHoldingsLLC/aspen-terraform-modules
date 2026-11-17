@@ -1,8 +1,9 @@
 # The customer's own Container Apps environment and registry, when the caller doesn't pass shared ones.
 
-# Consumption only (no workload profiles). Logs go to Azure Monitor and on to the caller's Log Analytics workspace
-# through a diagnostic setting, which keeps the workspace's shared key out of state (the "log-analytics" destination
-# needs it).
+# Consumption. Azure now creates every new environment with a built-in "Consumption" workload profile, so it's
+# declared here (and the apps name it, apps.tf); without it each plan tries to remove the profile, which Azure won't
+# do. Logs go to Azure Monitor and on to the caller's Log Analytics workspace through a diagnostic setting, which
+# keeps the workspace's shared key out of state (the "log-analytics" destination needs it).
 resource "azurerm_container_app_environment" "site" {
   count = local.own_environment ? 1 : 0
 
@@ -11,6 +12,11 @@ resource "azurerm_container_app_environment" "site" {
   location            = var.location
   logs_destination    = "azure-monitor"
   tags                = local.tags
+
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "environment" {
