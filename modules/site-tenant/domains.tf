@@ -14,11 +14,15 @@ resource "azurerm_container_app_environment_managed_certificate" "production" {
   name                         = each.value.certificate_name
   container_app_environment_id = local.environment_id
   subject_name                 = each.key
-  domain_control_validation    = each.value.validation
+  # azurerm 5.x accepts only CNAME and HTTP here, though Azure also issues with TXT. The certificate is created by az
+  # and imported, so the value is only a placeholder for TXT, and later differences are ignored rather than forcing a
+  # replacement.
+  domain_control_validation = each.value.validation == "TXT" ? "HTTP" : each.value.validation
 
   # Replacing a live site's certificate would take the domain off HTTPS until Azure issues a new one.
   lifecycle {
     prevent_destroy = true
+    ignore_changes  = [domain_control_validation]
   }
 }
 
