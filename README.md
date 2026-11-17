@@ -12,6 +12,7 @@ uses after it leaves Aspen.
 | [`github-oidc-deployer`](modules/github-oidc-deployer/README.md) | An app registration and service principal that GitHub Actions signs in as through OIDC, with the Graph application permissions it needs | An admin's Azure CLI sign-in, as Global Administrator or Privileged Role Administrator |
 | [`client-tenant-baseline`](modules/client-tenant-baseline/README.md) | Tenant-wide settings: who may invite guests, register apps, create tenants and groups, or join by email, and MFA trust for the operator's home tenant | The deployer service principal. An Azure CLI token has no `Policy.*` scopes |
 | [`state-backend`](modules/state-backend/README.md) | A storage account and container for Terraform state in the client's own subscription, Entra ID only | Anyone with Owner on the subscription |
+| [`site-tenant`](modules/site-tenant/README.md) | A customer's website on Azure Container Apps: production, a staging app behind Entra sign-in with PR previews, blob storage, an optional client portal and AI editor, and GitHub OIDC deploy identities. Its own environment and registry, or shared ones | An admin's Azure CLI sign-in with Owner, as Global Administrator or Privileged Role Administrator |
 
 ## Rules for what goes here
 
