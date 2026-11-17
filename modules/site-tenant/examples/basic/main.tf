@@ -82,6 +82,10 @@ module "site" {
   staging_user_object_ids = {}
 
   target_port = 3000
+
+  custom_domains = {
+    "www.example.com" = { certificate_name = "mc-www-example-com", validation = "TXT" }
+  }
 }
 
 output "github_variables" {

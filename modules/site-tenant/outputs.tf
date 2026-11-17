@@ -19,9 +19,9 @@ output "blob_endpoint" {
   value = azurerm_storage_account.site.primary_blob_endpoint
 }
 
-output "custom_domains_pending" {
-  description = "Hostnames to bind later. Nothing is bound yet."
-  value       = var.custom_domains
+output "custom_domains" {
+  description = "Hostnames bound to the production app."
+  value       = keys(azurerm_container_app_custom_domain.production)
 }
 
 output "environment_static_ip" {
