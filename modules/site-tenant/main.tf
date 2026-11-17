@@ -36,6 +36,10 @@ locals {
   own_registry    = var.container_registry == null
 
   environment_id = local.own_environment ? azurerm_container_app_environment.site[0].id : var.container_app_environment_id
+
+  # The workload profile the apps run on: the built-in Consumption profile of an environment the module creates, or
+  # whatever the caller says for a shared one (null for an older Consumption-only environment).
+  workload_profile_name = local.own_environment ? "Consumption" : var.workload_profile_name
   environment = local.own_environment ? {
     default_domain    = azurerm_container_app_environment.site[0].default_domain
     static_ip_address = azurerm_container_app_environment.site[0].static_ip_address

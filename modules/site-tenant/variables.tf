@@ -45,6 +45,12 @@ variable "container_app_environment_name" {
   }
 }
 
+variable "workload_profile_name" {
+  description = "With a shared environment: the workload profile the apps run on. Null for a Consumption-only environment (one created before workload profiles were the default). Ignored when the module creates the environment, which uses its built-in Consumption profile."
+  type        = string
+  default     = null
+}
+
 variable "log_analytics_workspace_id" {
   description = "Where the customer's own environment sends its logs. Ignored when a shared environment is passed. Null sends them nowhere."
   type        = string

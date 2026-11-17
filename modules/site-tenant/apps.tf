@@ -6,6 +6,7 @@ resource "azurerm_container_app" "production" {
   resource_group_name          = azurerm_resource_group.site.name
   container_app_environment_id = local.environment_id
   revision_mode                = "Single"
+  workload_profile_name        = local.workload_profile_name
   tags                         = local.tags
 
   identity {
@@ -99,6 +100,7 @@ resource "azurerm_container_app" "staging" {
   resource_group_name          = azurerm_resource_group.site.name
   container_app_environment_id = local.environment_id
   revision_mode                = "Multiple"
+  workload_profile_name        = local.workload_profile_name
   max_inactive_revisions       = 20
   tags                         = merge(local.tags, { environment = "staging" })
 
