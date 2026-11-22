@@ -22,6 +22,7 @@ Names below use the key `abc` in region `eus2`.
 | Storage | `staabceus2`, or `storage_account_name` | Entra only. `portfolio` is public read; `portal` is private |
 | Portal access list | tables `portalaccess`, `portalaccessstaging` | email => roles for the client portal. Created only when `portal_sign_in` is set |
 | Build tracker | tables `portalbuilds`, `portalbuildsstaging` | the portal's project data. Same roles and scoping as the access list |
+| Sign-up gate | `func-abc-gate-eus2` (Flex Consumption), `uai-abc-gate-eus2`, `stgateabceus2`, `appi-abc-gate-eus2` | External ID calls it before the sign-up form; it refuses emails on neither access list. Its identity reads the two access tables only. Created only when `portal_signup_gate` is set (and `portal_sign_in`) |
 | Deploy identities | `uai-abc-ghprod-eus2`, `uai-abc-ghstg-eus2` | GitHub OIDC, no secrets. Push `abc/*` only, deploy their own app only |
 
 ## Calling it
