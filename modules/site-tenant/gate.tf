@@ -6,6 +6,7 @@
 # can read the access tables and nothing else of the customer's, and its own small storage account for the host and the
 # deployment package, so the site's account isn't shared with function plumbing. No account keys anywhere.
 
+# The try() calls below only matter to linters that evaluate a count = 0 resource with the variables' null defaults.
 locals {
   gate = var.portal_signup_gate != null && var.portal_sign_in != null ? 1 : 0
 
@@ -85,7 +86,7 @@ resource "azurerm_application_insights" "gate" {
   resource_group_name          = azurerm_resource_group.site.name
   location                     = var.location
   application_type             = "Node.JS"
-  workspace_id                 = var.portal_signup_gate.log_analytics_workspace_id
+  workspace_id                 = try(var.portal_signup_gate.log_analytics_workspace_id, null)
   local_authentication_enabled = false
   retention_in_days            = 30
   tags                         = local.tags
@@ -142,9 +143,9 @@ resource "azurerm_function_app_flex_consumption" "gate" {
     AzureWebJobsStorage__credential  = "managedidentity"
     AzureWebJobsStorage__clientId    = azurerm_user_assigned_identity.gate[0].client_id
     AZURE_CLIENT_ID                  = azurerm_user_assigned_identity.gate[0].client_id
-    GATE_TENANT_ID                   = var.portal_sign_in.tenant_id
-    GATE_TENANT_SUBDOMAIN            = var.portal_signup_gate.tenant_subdomain
-    GATE_AUDIENCES                   = join(",", var.portal_signup_gate.audiences)
+    GATE_TENANT_ID                   = try(var.portal_sign_in.tenant_id, "")
+    GATE_TENANT_SUBDOMAIN            = try(var.portal_signup_gate.tenant_subdomain, "")
+    GATE_AUDIENCES                   = join(",", try(var.portal_signup_gate.audiences, []))
     ACCESS_TABLE_ENDPOINT            = azurerm_storage_account.site.primary_table_endpoint
     ACCESS_TABLES                    = join(",", [for t in azurerm_storage_table.portal_access : t.name])
     # Entra auth for Application Insights ingestion, as the gate's identity.
