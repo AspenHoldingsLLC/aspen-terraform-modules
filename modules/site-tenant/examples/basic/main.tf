@@ -70,6 +70,12 @@ module "site" {
     production_base_url         = "https://www.example.com"
   }
 
+  portal_signup_gate = {
+    tenant_subdomain           = "exampleclients"
+    audiences                  = []
+    log_analytics_workspace_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rgp-mgmt-eus2/providers/Microsoft.OperationalInsights/workspaces/law-mgmt-eus2"
+  }
+
   editor = {
     github_repo       = "ExampleOrg/example-site"
     users             = ["editor@example.com"]

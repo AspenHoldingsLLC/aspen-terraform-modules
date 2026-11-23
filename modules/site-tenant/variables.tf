@@ -157,6 +157,22 @@ variable "portal_sign_in" {
   default = null
 }
 
+variable "portal_signup_gate" {
+  description = <<-EOT
+    The client portal's sign-up gate: an Azure Function that External ID calls before the sign-up form, refusing
+    emails that aren't on a portal access list. Needs portal_sign_in. Null leaves it off. tenant_subdomain is the
+    External ID tenant's ciamlogin.com subdomain. audiences holds the client ID of the gate's own app registration in
+    that tenant, created when the extension is registered; leave it empty until then, and the function refuses every
+    call. log_analytics_workspace_id is where the gate's Application Insights writes.
+  EOT
+  type = object({
+    tenant_subdomain           = string
+    audiences                  = list(string)
+    log_analytics_workspace_id = string
+  })
+  default = null
+}
+
 variable "editor" {
   description = <<-EOT
     The AI editor on the staging app only. Null turns it off. The GitHub token is read from Key Vault by the staging

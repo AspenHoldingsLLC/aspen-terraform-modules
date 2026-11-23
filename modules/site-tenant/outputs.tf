@@ -63,3 +63,13 @@ output "runtime_identity_principal_id" {
   description = "Production's runtime identity, for data roles granted outside the module."
   value       = azurerm_user_assigned_identity.runtime.principal_id
 }
+
+output "signup_gate_url" {
+  description = "The sign-up gate's endpoint, for the External ID custom authentication extension. Null when the gate is off."
+  value       = local.gate == 1 ? "https://${azurerm_function_app_flex_consumption.gate[0].default_hostname}/api/attributeCollectionStart" : null
+}
+
+output "signup_gate_app" {
+  description = "The sign-up gate's function app name, for deploying its code. Null when the gate is off."
+  value       = local.gate == 1 ? azurerm_function_app_flex_consumption.gate[0].name : null
+}
